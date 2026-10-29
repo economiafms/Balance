@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balance NOB 2025/26 interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Recorrido guiado por 7 preguntas: cada tarjeta = pregunta, respuesta corta, gráfico interactivo y "en criollo"; franja rojinegra solo como identidad */
+  --bg: #f4f4f2;
+  --surface: #ffffff;
+  --ink: #151514;
+  --ink-2: #57554f;
+  --line: #e2e0da;
+  --accent: #0d7a5f;
+  --muted: #bdbab2;
+  --good: #0ca30c;
+  --bad: #d03b3b;
+  --warn: #c2410c;
+  --c1: #1baf7a; --c2: #eb6834; --c3: #8e44c4; --c4: #e87ba4; --c5: #008300; --c6: #a8326e;
+  --club-red: #c8102e;
+  --club-black: #111111;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121211; --surface: #1b1b1a; --ink: #f0efec; --ink-2: #c3c2b7; --line: #302f2c;
+    --accent: #199e70; --muted: #5f5d57; --warn: #f08a4b;
+    --c1: #199e70; --c2: #d95926; --c3: #a46ad8; --c4: #d55181; --c5: #008300; --c6: #c0508a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121211; --surface: #1b1b1a; --ink: #f0efec; --ink-2: #c3c2b7; --line: #302f2c;
+  --accent: #199e70; --muted: #5f5d57; --warn: #f08a4b;
+  --c1: #199e70; --c2: #d95926; --c3: #a46ad8; --c4: #d55181; --c5: #008300; --c6: #c0508a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.stripe { height: 6px; background: linear-gradient(90deg, var(--club-red) 0 50%, var(--club-black) 50% 100%); }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 18px; }
+header { background: var(--surface); border-bottom: 1px solid var(--line); }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 14px; padding: 20px 0 16px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.sub { color: var(--ink-2); margin: 4px 0 0; font-size: 15px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--bg); flex-wrap: wrap; }
+.seg button { font: 600 14px var(--font-body); color: var(--ink-2); background: transparent; border: 0; padding: 7px 12px; cursor: pointer; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, .tile:focus-visible, .pcard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+nav { position: sticky; top: 0; z-index: 6; background: var(--surface); border-bottom: 1px solid var(--line); }
+nav ol { list-style: none; display: flex; gap: 4px; margin: 0 auto; padding: 6px 18px; max-width: 1280px; overflow-x: auto; }
+nav a { display: flex; gap: 6px; align-items: center; white-space: nowrap; color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: 14px; padding: 6px 10px; border-radius: 999px; }
+nav a b { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg); font-size: 12px; }
+nav a.on { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--ink); }
+nav a.on b { background: var(--accent); color: #fff; }
+main { display: grid; gap: 22px; padding: 22px 0 56px; }
+.hero { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 16px; }
+.hero p.big { font-family: var(--font-display); font-size: 25px; font-weight: 600; line-height: 1.25; margin: 0; max-width: 46ch; text-wrap: balance; }
+.lights { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.light { text-align: left; font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-left: 5px solid var(--bad); border-radius: 10px; padding: 12px 14px; cursor: pointer; display: grid; gap: 2px; }
+.light:hover { border-color: var(--ink-2); border-left-color: var(--bad); }
+.light.warn { border-left-color: var(--warn); }
+.light .k { font-size: 13px; color: var(--ink-2); }
+.light .v { font-family: var(--font-display); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.light .d { font-size: 13px; color: var(--ink-2); }
+section.q { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; scroll-margin-top: 60px; }
+.qhead { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
+.qnum { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+.qlabel { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 25px; line-height: 1.2; margin: 2px 0 0; text-wrap: balance; max-width: 40ch; }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; }
+.criollo { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); border-left: 4px solid var(--accent); border-radius: 8px; padding: 12px 14px; max-width: 75ch; }
+.criollo strong { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); margin-bottom: 2px; }
+.chart { width: 100%; overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.chart text { font-family: var(--font-body); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.source { font-size: 12px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 8px; margin: 0; }
+.detail { background: var(--bg); border-radius: 10px; padding: 12px 14px; font-size: 15px; min-height: 52px; }
+.detail b.n { font-family: var(--font-display); font-size: 20px; }
+.split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+.term { border-bottom: 1.5px dotted var(--ink-2); cursor: help; }
+.tile { cursor: pointer; }
+.grow { transform-box: fill-box; transform-origin: left center; animation: grow .55s ease-out both; }
+.fade { animation: fade .45s ease-out both; }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.lab { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .lab { grid-template-columns: 1fr; } }
+.sliders { display: grid; gap: 14px; }
+.sl label { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 600; }
+.sl label output { font-variant-numeric: tabular-nums; color: var(--accent); }
+.sl small { color: var(--ink-2); font-size: 13px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presets button { font: 600 13px var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.presets button:hover { border-color: var(--accent); }
+.opts { display: grid; gap: 8px; }
+.opts .rlabel { margin: 0; }
+.presets { flex-direction: column; align-items: stretch; }
+.presets button { display: flex; align-items: center; gap: 10px; text-align: left; border-radius: 10px; padding: 9px 12px; font-size: 14px; }
+.presets button i { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--ink-2); flex: none; display: grid; place-items: center; }
+.presets button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+.presets button[aria-pressed="true"] i { background: var(--accent); border-color: var(--accent); }
+.presets button[aria-pressed="true"] i::after { content: "✓"; color: #fff; font-size: 12px; font-style: normal; font-weight: 700; line-height: 1; }
+.alerts-wrap { display: grid; gap: 6px; }
+.alerts-wrap .rlabel { margin: 0; }
+.alerts { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.lab-left { display: grid; gap: 14px; align-content: start; }
+@media (max-width: 1100px) { .alerts { grid-template-columns: 1fr; } }
+.alert { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; border-radius: 10px; padding: 9px 11px; border: 1px solid; animation: fade .3s ease-out both; }
+.alert b { display: block; font-family: var(--font-display); font-size: 15px; letter-spacing: .02em; line-height: 1.15; }
+.alert span:not(.ic) { display: block; font-size: 12px; color: var(--ink-2); line-height: 1.3; margin-top: 3px; }
+.alert .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
+.alert.crit { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, var(--surface)); }
+.alert.crit b { color: var(--bad); } .alert.crit .ic { background: var(--bad); }
+.alert.warn { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--surface)); }
+.alert.warn b { color: var(--warn); } .alert.warn .ic { background: var(--warn); }
+.alert.info { border-color: var(--line); background: var(--bg); }
+.alert.info .ic { background: var(--ink-2); }
+.alert.ok { border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, var(--surface)); }
+.alert.ok b { color: var(--good); } .alert.ok .ic { background: var(--good); }
+.alert.sug { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.alert.sug b { color: var(--accent); } .alert.sug .ic { background: var(--accent); }
+.alerts .more { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--ink-2); }
+.opts-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.viz .presets { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+.viz .presets button { padding: 7px 11px; font-size: 13px; border-radius: 999px; }
+.viz .presets button i { width: 15px; height: 15px; }
+.viz .sliders { grid-template-columns: 1fr; gap: 6px; align-content: start; }
+.viz .sl small { font-size: 12px; line-height: 1.3; display: block; }
+.viz .sl label { font-size: 13px; }
+.viz .sl { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: center; }
+.viz .sl input { margin: 0; }
+.viz .outcome { padding: 14px; gap: 9px; }
+.viz .outcome .res { font-size: 30px; }
+.viz .outcome .row { font-size: 13px; padding-top: 5px; }
+@media (max-width: 1100px) { .viz .sliders { grid-template-columns: 1fr; } }
+.reset { justify-self: start; font: 600 13px var(--font-body); color: var(--ink-2); background: none; border: 0; padding: 4px 0; text-decoration: underline; cursor: pointer; }
+.outcome { background: var(--bg); border-radius: 12px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+.outcome .res { font-family: var(--font-display); font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.outcome .row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; border-top: 1px solid var(--line); padding-top: 8px; }
+.outcome .row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.verdict { font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 999px; justify-self: start; }
+.verdict.bad { background: color-mix(in srgb, var(--bad) 15%, transparent); color: var(--bad); }
+.verdict.good { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); }
+.cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1100px) { .cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+.q6-jug { display: grid; gap: 10px; }
+.q6-jug[hidden], .q6-deuda[hidden], [hidden] { display: none !important; }
+.pcard { text-align: left; font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; cursor: pointer; display: grid; gap: 5px; align-content: start; }
+.pcard .nm { font-size: 13px !important; line-height: 1.25; }
+.pcard .val { font-size: 20px !important; }
+.pcard .chip { font-size: 11px !important; }
+.pcard:hover { border-color: var(--ink-2); }
+.pcard.sel { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.pcard .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.pcard .rk { font-size: 12px; color: var(--ink-2); font-weight: 700; }
+.pcard .nm { font-weight: 700; font-size: 15px; }
+.pcard .val { font-family: var(--font-display); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bar { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 22%, transparent); overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; background: var(--muted); }
+.pcard .meta { font-size: 12px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 6px; }
+.chip { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; justify-self: start; background: var(--surface); border: 1px solid var(--line); }
+.chip.in { border-color: var(--c1); color: var(--c1); }
+.chip.out { border-color: var(--bad); color: var(--bad); }
+.chip.loan { border-color: var(--warn); color: var(--warn); }
+select { font: 600 14px var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+dl.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 18px; margin: 0; }
+dl.gloss div { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+dl.gloss dt { font-weight: 700; }
+dl.gloss dd { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
+.page:not(.active) { display: none !important; }
+.page.active { display: grid; animation: fade .3s ease-out both; }
+main { min-height: 70vh; align-content: start; }
+.progress { height: 3px; background: var(--line); }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease-out; }
+.pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; }
+.pager button, .start { font: 600 15px var(--font-body); border-radius: 999px; padding: 9px 16px; cursor: pointer; }
+.pager .prev { background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+.pager .prev:hover { color: var(--ink); border-color: var(--ink-2); }
+.pager .next, .start { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+.pager .next:hover, .start:hover { filter: brightness(1.1); }
+.page h2:focus, .page .big:focus { outline: none; }
+/* Dos columnas: pregunta y respuesta fijas a la izquierda, exploración a la derecha */
+section.q.page.active:not(.wide) { grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.answer { display: grid; gap: 16px; align-content: start; position: sticky; top: 70px; }
+.answer h2 { font-size: 27px; }
+.viz { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.resp { background: var(--bg); border-radius: 12px; padding: 14px 16px; }
+.rlabel { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+.resp p { font-family: var(--font-display); font-size: 23px; font-weight: 600; line-height: 1.22; margin: 4px 0 0; text-wrap: balance; }
+.resp p b { color: var(--accent); }
+.facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.facts li { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.facts b { font-family: var(--font-display); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.facts b.neg { color: var(--bad); }
+.facts b.pos { color: var(--good); }
+.facts span { font-size: 14px; color: var(--ink-2); line-height: 1.35; }
+.answer .criollo { max-width: none; font-size: 15px; }
+.hint { font-size: 14px; color: var(--ink-2); }
+.pager { grid-column: 1 / -1; }
+.hero.page.active { grid-template-columns: 1.15fr 1fr; gap: 28px; align-items: center; padding: 32px; }
+.hero .intro { display: grid; gap: 16px; }
+.hero p.big { font-size: 32px; }
+.hero .lights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hero .light:last-child { grid-column: 1 / -1; }
+.viz .lab { grid-template-columns: 1fr minmax(260px, 340px); }
+@media (max-width: 920px) {
+  section.q.page.active:not(.wide), .hero.page.active { grid-template-columns: 1fr; }
+  .answer { position: static; }
+  .viz .lab { grid-template-columns: 1fr; }
+}
+.tip { position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--surface); font-size: 13px; line-height: 1.35; padding: 7px 10px; border-radius: 7px; max-width: 290px; opacity: 0; transition: opacity .1s; }
+.tip.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .grow, .fade, .page.active { animation: none; } .progress i { transition: none; } .tip { transition: none; } }
+@media (max-width: 480px) { h1 { font-size: 24px; } h2 { font-size: 21px; } .hero p.big { font-size: 21px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="stripe"></div>
+  <div class="wrap head">
+    <div>
+      <h1>Newell's Old Boys: ¿cómo están las cuentas?</h1>
+      <p class="sub">Balance del ejercicio 1/7/2025 – 30/6/2026, explicado en 7 preguntas · demo interactiva</p>
+    </div>
+    <div class="seg" role="group" aria-label="Moneda">
+      <button id="u-ars" aria-pressed="true">Pesos</button>
+      <button id="u-usd" aria-pressed="false">Dólares</button>
+    </div>
+  </div>
+</header>
+<nav aria-label="Preguntas">
+  <ol id="steps">
+    <li><a href="#inicio"><b>★</b>Inicio</a></li>
+    <li><a href="#q1"><b>1</b>¿Ganó o perdió?</a></li>
+    <li><a href="#q2"><b>2</b>¿De dónde viene la plata?</a></li>
+    <li><a href="#q3"><b>3</b>¿En qué se gasta?</a></li>
+    <li><a href="#q4"><b>4</b>¿Alcanza la caja?</a></li>
+    <li><a href="#q5"><b>5</b>¿Cuánto debe?</a></li>
+    <li><a href="#q6"><b>6</b>¿Cuánto vale el plantel?</a></li>
+    <li><a href="#q7"><b>7</b>¿Qué pasaría si…?</a></li>
+    <li><a href="#glosario"><b>?</b>Glosario</a></li>
+  </ol>
+  <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+</nav>
+<div class="wrap">
+<main>
+  <section class="hero page" id="inicio">
+    <div class="intro">
+      <p class="qlabel">Resumen en una frase</p>
+      <p class="big">El club gastó $186 por cada $100 que le entraron, perdió <b data-m="28003496383"></b> y hoy debe 6 veces lo que vale su <span class="term" data-tip="Patrimonio neto: lo que le quedaría al club si vendiera todo lo que tiene y pagara todas sus deudas.">patrimonio</span>.</p>
+      <p class="sub" style="margin:0">Siete preguntas, una por página, cada una con su respuesta corta y un gráfico para explorar. Tocá un indicador para ir directo a su tema.</p>
+      <div><button class="start" data-go="q1">Empezar el recorrido →</button></div>
+    </div>
+    <div class="lights" id="lights"></div>
+  </section>
+
+  <section class="q page" id="q1">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">1</div><div><p class="qlabel">Pregunta 1</p><h2>¿El club ganó o perdió plata este año?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p>Perdió. Gastó <b>$186 por cada $100</b> que le entraron.</p></div>
+      <ul class="facts">
+        <li><b data-m="-28003496383" class="neg"></b><span>resultado del ejercicio 2025/26</span></li>
+        <li><b data-m="3523413959" data-s="1"></b><span>resultado del año anterior, inflado por un revalúo de jugadores</span></li>
+        <li><b class="neg">−78%</b><span>caída del patrimonio neto en un año</span></li>
+      </ul>
+      <div class="criollo" id="cr-q1"></div>
+      <p class="source">Estado de recursos y gastos, evolución del patrimonio neto y Nota 18.</p>
+    </aside>
+    <div class="viz">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Vista resultado">
+          <button data-q1="cada100" aria-pressed="true">Por cada $100</button>
+          <button data-q1="cambio" aria-pressed="false">Qué cambió</button>
+          <button data-q1="pn" aria-pressed="false">Efecto en el patrimonio</button>
+        </div>
+        <div class="seg" role="group" aria-label="Ejercicio" id="q1-year">
+          <button data-y="a" aria-pressed="false">2024/25</button>
+          <button data-y="b" aria-pressed="true">2025/26</button>
+        </div>
+      </div>
+      <div class="legend" id="lg-q1"></div>
+      <div class="chart" id="c-q1"></div>
+    </div>
+  </section>
+
+  <section class="q page" id="q2">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">2</div><div><p class="qlabel">Pregunta 2</p><h2>¿De dónde viene la plata?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p>Sobre todo de los <b>socios</b>. Lo que se cayó fue la <b>venta de jugadores</b>.</p></div>
+      <ul class="facts">
+        <li><b>41%</b><span>de los ingresos son cuotas sociales, de fútbol y abonos (<span data-m="14705664998"></span>)</span></li>
+        <li><b class="pos">+1,5%</b><span>ingresos que llegan todos los años: <span data-m="28852789642"></span></span></li>
+        <li><b class="neg">−59%</b><span>cobros por transferencias de jugadores</span></li>
+      </ul>
+      <div class="criollo"><strong>En criollo</strong>Socios, TV y sponsors se mantuvieron. Faltó plata porque se vendieron menos jugadores y porque el <span class="term" data-tip="Revalúo: aumento contable del valor de los jugadores. No entra dinero.">revalúo</span> de $6.142 M de 2024/25 no se repitió.</div>
+      <p class="source">Anexo V (fines generales) y Anexo VI (fútbol).</p>
+    </aside>
+    <div class="viz">
+      <div class="toolbar">
+        <span class="hint">Cada rectángulo es una fuente de ingreso. Tocá uno para compararlo.</span>
+        <div class="seg" role="group" aria-label="Ejercicio ingresos" id="q2-year">
+          <button data-y="a" aria-pressed="false">2024/25</button>
+          <button data-y="b" aria-pressed="true">2025/26</button>
+        </div>
+      </div>
+      <div class="legend" id="lg-q2"></div>
+      <div class="chart" id="c-q2"></div>
+      <div class="detail" id="d-q2"></div>
+    </div>
+  </section>
+
+  <section class="q page" id="q3">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">3</div><div><p class="qlabel">Pregunta 3</p><h2>¿En qué se gasta?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p>En el <b>plantel profesional</b>, y este año en <b>dar de baja jugadores</b>.</p></div>
+      <ul class="facts">
+        <li><b>60%</b><span>de los ingresos de todos los años se va en sueldos del plantel (<span data-m="17269070537"></span>)</span></li>
+        <li><b class="neg" data-m="11173039488"></b><span>costo de bajas y rescisiones, 6,6 veces más que el año anterior</span></li>
+        <li><b class="neg">+25%</b><span>aumento del gasto total</span></li>
+      </ul>
+      <div class="criollo"><strong>En criollo</strong>El <span class="term" data-tip="Costo de bajas: el valor que todavía figuraba en libros de los jugadores que se fueron, más las rescisiones de contrato.">costo de bajas</span> explica el 71% de la suba del gasto: son jugadores que se fueron antes de terminar de "pagarse" en los libros.</div>
+      <p class="source">Anexos II, III, VII y VIII.</p>
+    </aside>
+    <div class="viz">
+      <div class="toolbar">
+        <span class="hint">Tamaño = cuánto se gastó. Tocá un rectángulo para compararlo.</span>
+        <div class="seg" role="group" aria-label="Ejercicio gastos" id="q3-year">
+          <button data-y="a" aria-pressed="false">2024/25</button>
+          <button data-y="b" aria-pressed="true">2025/26</button>
+        </div>
+      </div>
+      <div class="legend" id="lg-q3"></div>
+      <div class="chart" id="c-q3"></div>
+      <div class="detail" id="d-q3"></div>
+    </div>
+  </section>
+
+  <section class="q page" id="q4">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">4</div><div><p class="qlabel">Pregunta 4</p><h2>¿Le alcanza la caja para funcionar?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p><b>No.</b> Lo que cobra no cubre lo que paga; el faltante se tapó vendiendo jugadores y con préstamos.</p></div>
+      <ul class="facts">
+        <li><b data-m="28963375444"></b><span>cobrado por la actividad del club</span></li>
+        <li><b class="neg" data-m="39669357414"></b><span>pagado en sueldos, proveedores e impuestos</span></li>
+        <li><b data-m="287785564"></b><span>caja al 30/06/2026</span></li>
+      </ul>
+      <div class="criollo" id="cr-q4"></div>
+      <p class="source">Estado de flujo de efectivo 2025/26.</p>
+    </aside>
+    <div class="viz">
+      <div class="toolbar">
+        <span class="hint">El recorrido del dinero en el año, de arriba hacia abajo.</span>
+        <div class="seg" role="group" aria-label="Ajuste por inflación">
+          <button id="recpam-on" aria-pressed="true">Como en el balance</button>
+          <button id="recpam-off" aria-pressed="false">Solo dinero real</button>
+        </div>
+      </div>
+      <div class="legend"><span><i class="sw" style="background:var(--good)"></i>Entra dinero</span><span><i class="sw" style="background:var(--bad)"></i>Sale dinero</span><span><i class="sw" style="background:var(--muted)"></i>Saldo en caja</span></div>
+      <div class="chart" id="c-q4"></div>
+    </div>
+  </section>
+
+  <section class="q page" id="q5">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">5</div><div><p class="qlabel">Pregunta 5</p><h2>¿Cuánto debe y a quién?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p>Debe <b data-m="60758099745"></b>, sobre todo a <b>otros clubes y jugadores</b>, y más de la mitad en dólares.</p></div>
+      <ul class="facts">
+        <li><b class="neg">+55%</b><span>más deuda que hace un año</span></li>
+        <li><b>57%</b><span>de la deuda está en dólares (USD 23,1 M)</span></li>
+        <li><b class="neg">$0,10</b><span>disponibles en 12 meses por cada $1 que vence en ese plazo</span></li>
+      </ul>
+      <div class="criollo"><strong>En criollo</strong>Si el dólar sube, la deuda sube. Y los cheques rechazados se quintuplicaron: cuesta pagar a tiempo.</div>
+      <p class="source">Notas 11 a 17, Anexo I y estado de situación patrimonial.</p>
+    </aside>
+    <div class="viz">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Vista deuda">
+          <button data-q5="quien" aria-pressed="true">A quién le debe</button>
+          <button data-q5="balance" aria-pressed="false">Lo que tiene vs. lo que debe</button>
+        </div>
+        <div class="seg" role="group" aria-label="Fecha deuda" id="q5-year">
+          <button data-y="a" aria-pressed="false">30/06/2025</button>
+          <button data-y="b" aria-pressed="true">30/06/2026</button>
+        </div>
+      </div>
+      <div class="legend" id="lg-q5"></div>
+      <div class="chart" id="c-q5"></div>
+      <div class="detail" id="d-q5"></div>
+    </div>
+  </section>
+
+  <section class="q page" id="q6">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">6</div><div><p class="qlabel">Pregunta 6</p><h2>¿Cuánto vale el plantel?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p>En los libros, <b data-m="18684827351"></b>: <b>casi la mitad</b> de lo que se debe por pases.</p></div>
+      <ul class="facts">
+        <li><b>5</b><span>jugadores concentran más de la mitad del valor</span></li>
+        <li><b>19%</b><span>del valor es un solo jugador: Juan Ignacio Ramírez</span></li>
+        <li><b class="neg" data-m="34571368562"></b><span>deuda con clubes y jugadores</span></li>
+      </ul>
+      <div class="criollo"><strong>En criollo</strong>Es valor contable: lo que costaron menos lo ya <span class="term" data-tip="Amortización: cada año se pasa a gasto una parte del costo del jugador, en partes iguales hasta que termina su contrato.">amortizado</span>. En una venta podrían valer más o menos.</div>
+      <p class="source">Anexo II, Nota 11 y Memoria 2026.</p>
+    </aside>
+    <div class="viz">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Vista plantel">
+          <button data-q6="jug" aria-pressed="true">Los 10 más valiosos</button>
+          <button data-q6="deuda" aria-pressed="false">Frente a la deuda</button>
+        </div>
+        <label class="hint" id="p-sort-wrap">Ordenar por
+          <select id="p-sort"><option value="neto">Valor actual</option><option value="cierre">Lo que costó</option><option value="cons">Más amortizado</option></select>
+        </label>
+      </div>
+      <div class="q6-jug">
+        <div class="chart" id="c-conc"></div>
+        <div class="cards" id="cards"></div>
+        <div class="detail" id="d-q6"></div>
+      </div>
+      <div class="q6-deuda" hidden>
+        <div class="chart" id="c-vsdeuda"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="q page" id="q7">
+    <aside class="answer">
+      <div class="qhead"><div class="qnum">7</div><div><p class="qlabel">Pregunta 7</p><h2>¿Qué haría falta para equilibrar las cuentas?</h2></div></div>
+      <div class="resp"><span class="rlabel">Respuesta</span><p>Cubrir <b data-m="28003496383"></b>. No alcanza con <b>una sola medida</b>: hay que combinar varias.</p></div>
+      <ul class="facts">
+        <li><b>USD 18,7 M</b><span>en ventas de jugadores harían falta para cubrirlo todo con pases</span></li>
+        <li><b data-m="6907628214"></b><span>se ahorraría bajando 40% los sueldos del plantel</span></li>
+      </ul>
+      <p class="source">Cálculo simplificado: cada control suma o resta directamente al resultado. No incluye impuestos ni el valor contable de los jugadores vendidos. Las alertas son escenarios hipotéticos para debatir, no predicciones.</p>
+    </aside>
+    <div class="viz">
+      <div class="opts">
+        <div class="opts-head"><p class="rlabel" id="opts-label">Elegí una o varias medidas</p><button class="reset" data-reset="1">Volver a como fue</button></div>
+        <div class="presets" id="presets" role="group" aria-labelledby="opts-label">
+          <button data-p="venta" aria-pressed="false"><i aria-hidden="true"></i>Vender un titular por USD 5 M</button>
+          <button data-p="compra" aria-pressed="false"><i aria-hidden="true"></i>Comprar un jugador por USD 3 M</button>
+          <button data-p="predio" aria-pressed="false"><i aria-hidden="true"></i>El club vende un predio o instalaciones</button>
+          <button data-p="ajuste" aria-pressed="false"><i aria-hidden="true"></i>Bajar 30% los sueldos del plantel</button>
+          <button data-p="socios" aria-pressed="false"><i aria-hidden="true"></i>Campaña de socios</button>
+          <button data-p="deval" aria-pressed="false"><i aria-hidden="true"></i>Devaluación del 30%</button>
+        </div>
+      </div>
+      <div class="lab">
+        <div class="lab-left">
+        <div class="sliders">
+          <div class="sl"><label for="s-venta"><span class="term" data-tip="En millones de dólares, como ganancia neta, al dólar del simulador.">Ventas extra de jugadores</span> <output id="o-venta"></output></label><input type="range" id="s-venta" min="0" max="20" step="0.5" value="0"></div>
+          <div class="sl"><label for="s-compra"><span class="term" data-tip="En millones de dólares, al dólar del simulador. Se toma el costo completo en el año.">Compras de jugadores</span> <output id="o-compra"></output></label><input type="range" id="s-compra" min="0" max="10" step="0.5" value="0"></div>
+          <div class="sl"><label for="s-predio"><span class="term" data-tip="Cada paso suma un bien del Anexo III, vendido a su valor en libros: 1) anticipo de terrenos, 2) instalaciones, 3) edificios y terrenos.">Venta de predio o instalaciones</span> <output id="o-predio"></output></label><input type="range" id="s-predio" min="0" max="3" step="1" value="0"></div>
+          <div class="sl"><label for="s-sueldos"><span class="term" data-tip="Base: $17.269 M por año.">Cambio en sueldos del plantel</span> <output id="o-sueldos"></output></label><input type="range" id="s-sueldos" min="-40" max="20" step="5" value="0"></div>
+          <div class="sl"><label for="s-socios"><span class="term" data-tip="Base: $14.706 M entre cuotas sociales y abonos.">Aumento de cuotas y abonos</span> <output id="o-socios"></output></label><input type="range" id="s-socios" min="0" max="50" step="5" value="0"></div>
+          <div class="sl"><label for="s-deval"><span class="term" data-tip="Dólar actual del balance: $1.500. Encarece la deuda neta en dólares ($30.495 M a ese tipo de cambio).">Devaluación del peso</span> <output id="o-deval"></output></label><input type="range" id="s-deval" min="0" max="60" step="5" value="0"></div>
+        </div>
+          <div class="alerts-wrap">
+            <p class="rlabel" id="alerts-label">Qué podría pasar · escenarios hipotéticos</p>
+            <div class="alerts" id="alerts" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="outcome" id="outcome"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="q page wide" id="glosario">
+    <div class="qhead"><div class="qnum">?</div><div><p class="qlabel">Glosario</p><h2>Las palabras del balance, en simple</h2></div></div>
+    <dl class="gloss" id="gloss"></dl>
+  </section>
+</main>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const TC = 1500;
+const st = { unit: 'ARS', q1: 'cada100', y1: 'b', y2: 'b', y3: 'b', y5: 'b', q5: 'quien', recpam: true, sel2: null, sel3: null, sel5: null, selP: 0, psort: 'neto', q6: 'jug' };
+
+const CAT = {
+  ing: [['jug', 'Venta y revalúo de jugadores', 'var(--c2)'], ['soc', 'Socios', 'var(--c1)'], ['med', 'TV y sponsors', 'var(--c3)'], ['otr', 'Otros ingresos', 'var(--c4)']],
+  gas: [['pla', 'Plantel profesional', 'var(--c1)'], ['baj', 'Bajas del plantel', 'var(--c2)'], ['amo', 'Amortizaciones', 'var(--c4)'], ['adm', 'Administración', 'var(--c6)'], ['res', 'Resto del club', 'var(--c3)']],
+  deu: [['fut', 'Clubes y jugadores', 'var(--c1)'], ['ban', 'Bancos y préstamos', 'var(--c2)'], ['che', 'Cheques', 'var(--c4)'], ['pro', 'Proveedores', 'var(--c3)'], ['emp', 'Empleados, impuestos y juicios', 'var(--c6)'], ['ant', 'Cobrado por adelantado', 'var(--c5)']]
+};
+const ING = [
+  ['jug', 'Transferencias de jugadores', 17974246247, 7374686861],
+  ['jug', 'Revalúo de jugadores', 6141963653, 0],
+  ['soc', 'Cuotas sociales', 7078097588, 7687801002],
+  ['soc', 'Cuotas de fútbol y abonos a plateas', 6264347065, 7017863996],
+  ['med', 'Derechos de TV', 6945756770, 5810851281],
+  ['med', 'Publicidad y sponsors', 3455841065, 2363784451],
+  ['otr', 'Recupero Decreto 510/23', 1361156478, 2009868250],
+  ['otr', 'Alquiler de estadios', 306928590, 665707714],
+  ['otr', 'Derechos de fútbol', 337088864, 596700600],
+  ['otr', 'Entradas, campeonatos y premios', 126517448, 554712919],
+  ['otr', 'Secciones, CIENOB, subsidios y otros', 2545507190, 2145499429]
+];
+const GAS = [
+  ['pla', 'Sueldos y cargas del plantel', 15691346401, 17269070537],
+  ['baj', 'Costo de bajas y rescisiones', 1691693692, 11173039488],
+  ['pla', 'Préstamos y transferencias de jugadores', 7401141749, 6279616096],
+  ['pla', 'Participación en campeonatos', 3301808234, 2789430965],
+  ['pla', 'Estadía y concentración', 2027227718, 2087590893],
+  ['pla', 'Estadio y partidos', 1317962836, 1736870856],
+  ['pla', 'Otros gastos del fútbol profesional', 473106004, 1594603845],
+  ['amo', 'Amortización de jugadores', 9691542218, 11392739835],
+  ['amo', 'Amortización de edificios y bienes', 570895453, 1156298520],
+  ['adm', 'Administración', 6594583897, 5742242976],
+  ['res', 'Bella Vista y fútbol amateur', 1638797218, 2259586147],
+  ['res', 'Secciones, CIENOB, seguridad y otros', 3846336957, 4082267839]
+];
+const DEU = [
+  ['fut', 'Deudas del fútbol profesional', 20208699520, 34571368562],
+  ['ban', 'Préstamos', 3187320119, 9785799870],
+  ['ban', 'Descubierto bancario', 835780441, 2962021060],
+  ['che', 'Cheques rechazados a pagar', 539800219, 2791948339],
+  ['che', 'Cheques diferidos', 5568183138, 1053589759],
+  ['pro', 'Proveedores', 1230532024, 2399478809],
+  ['emp', 'Sueldos y cargas sociales', 4012369157, 2195838714],
+  ['emp', 'Impuestos (ARCA y planes)', 1260682966, 1203057172],
+  ['emp', 'Juicios (previsión y deudas)', 86470052, 519294817],
+  ['ant', 'Abonos, plateas y publicidad cobrados por adelantado', 2278413670, 3275702643]
+];
+const RES = [
+  { label: 'Superávit 2024/25', kind: 'start', v: 3523413959 },
+  { label: 'Ingresos generales (socios, secciones)', v: 1144238977 },
+  { label: 'Ingresos del fútbol (pases, TV, sponsors)', v: -17454213432 },
+  { label: 'Gastos de los sectores (plantel, bajas)', v: -11882655857 },
+  { label: 'Gastos de administración', v: 852340921 },
+  { label: 'Amortización de edificios y bienes', v: -585403067 },
+  { label: 'Amortización de jugadores', v: -1701197617 },
+  { label: 'Resultados financieros e inflación', v: -1900020267 },
+  { label: 'Déficit 2025/26', kind: 'end' }
+];
+const PN = [
+  { label: 'Patrimonio al 30/06/2025', kind: 'start', v: 45088342935 },
+  { label: 'Correcciones de años anteriores (Nota 18)', v: -7083490927 },
+  { label: 'Ajuste por revaluación', v: -195650226 },
+  { label: 'Déficit del ejercicio', v: -28003496383 },
+  { label: 'Patrimonio al 30/06/2026', kind: 'end' }
+];
+const FLU = [
+  { label: 'Caja al inicio', kind: 'start', v: 648561846 },
+  { label: 'Cobranzas de socios', v: 15278672916 },
+  { label: 'Cobros del fútbol profesional', v: 11430012029 },
+  { label: 'Otros cobros (secciones, CIENOB, estadio)', v: 2222125945 },
+  { label: 'Venta de mercadería oficial', v: 32564554 },
+  { label: 'Ajuste por inflación de la caja (RECPAM)', v: 10942088723, recpam: true },
+  { label: 'Pagos de sueldos, proveedores e impuestos', v: -39669357414 },
+  { label: 'Cobros por venta de jugadores', v: 9289470797 },
+  { label: 'Cobros de plazos fijos', v: 15622841 },
+  { label: 'Compras de jugadores y obras', v: -14959992206 },
+  { label: 'Préstamos nuevos (neto)', v: 4625190769 },
+  { label: 'Pasivos judiciales', v: 432824764 },
+  { label: 'Caja al cierre', kind: 'end' }
+];
+const BAL = [
+  { y: 'a', side: 'Lo que tiene (activo)', parts: [['Para cobrar o usar en 12 meses', 12392410838, 'var(--c3)', .8], ['Estadio, predios, jugadores y otros', 71904183401, 'var(--c3)', .4]] },
+  { y: 'a', side: 'Lo que debe + patrimonio', parts: [['Deudas a pagar en 12 meses', 34713392044, 'var(--bad)', .7], ['Deudas a más de 12 meses', 4494859260, 'var(--bad)', .4], ['Patrimonio neto', 45088342935, 'var(--muted)', .5]] },
+  { y: 'b', side: 'Lo que tiene (activo)', parts: [['Para cobrar o usar en 12 meses', 5537507913, 'var(--c3)', .8], ['Estadio, predios, jugadores y otros', 65026297232, 'var(--c3)', .4]] },
+  { y: 'b', side: 'Lo que debe + patrimonio', parts: [['Deudas a pagar en 12 meses', 54193470172, 'var(--bad)', .7], ['Deudas a más de 12 meses', 6564629573, 'var(--bad)', .4], ['Patrimonio neto', 9805705400, 'var(--muted)', .5]] }
+];
+const PLA = [
+  ['Juan Ignacio Ramírez', 5935881770, 2374352708, 3561529062, 9497410831, 'Volvió de préstamo', 'in'],
+  ['Rodrigo Herrera', 0, 431010217, 2155051085, 2586061303, 'Llegó en 2026', 'in'],
+  ['Martín Fernández Figueira', 2093683788, 615217969, 1538044922, 2203576223, 'Cedido a Albacete', 'loan'],
+  ['Saúl Salcedo', 2489001305, 995600522, 1493400783, 3484601827, 'En el plantel', ''],
+  ['Oscar Salomón', 0, 280942189, 1404710945, 1685653134, 'Llegó en 2026', 'in'],
+  ['Juan Ángel Espínola González', 0, 487002129, 1217505324, 1704507453, 'Cedido a Barracas', 'loan'],
+  ['Matías Coccaro Ferreira', 0, 211530047, 1057650236, 1269180284, 'Llegó en 2026', 'in'],
+  ['Luciano Herrera', 0, 232747296, 997488410, 1230235706, 'Llegó en 2026', 'in'],
+  ['Bruno Cabrera', 0, 143774181, 718870906, 862645087, 'Llegó en 2026', 'in'],
+  ['Fernando Cardozo', 1459401369, 467008438, 700512657, 1634529533, 'Figura como baja', 'out']
+].map(([n, neto25, amort, neto, cierre, sit, k], i) => ({ i, n, neto25, amort, neto, cierre, sit, k, cons: 1 - neto / cierre }));
+// Derechos sobre jugadores (Anexo II): total de intangibles $21.893.913.369 menos formación de juveniles y marcas, licencias y software
+const PLANTEL = 18684827351;
+const OTROS_PLA = [['Resto del plantel', PLANTEL - PLA.reduce((a, p) => a + p.neto, 0)]];
+// Cuántos jugadores, de mayor a menor valor, alcanzan la mitad del plantel
+const MITAD = [...PLA].sort((a, b) => b.neto - a.neto).reduce((m, p) => m.v < PLANTEL / 2 ? { n: m.n + 1, v: m.v + p.neto } : m, { n: 0, v: 0 });
+const VSD = [
+  ['Valor de los jugadores en libros', PLANTEL, 'var(--accent)', 1],
+  ['Deuda con clubes y jugadores', 34571368562, 'var(--bad)', .65],
+  ['Patrimonio neto', 9805705400, 'var(--muted)', 1],
+  ['Patrimonio neto sin los jugadores', 9805705400 - PLANTEL, 'var(--bad)', .65]
+];
+const GLOSS = [
+  ['Patrimonio neto', 'Lo que le quedaría al club si vendiera todo lo que tiene y pagara todas sus deudas. Es "lo propio".'],
+  ['Activo', 'Todo lo que el club tiene: caja, créditos a cobrar, estadio, predios y los derechos sobre sus jugadores.'],
+  ['Pasivo', 'Todo lo que el club debe: a clubes, bancos, proveedores, empleados y el Estado.'],
+  ['Corriente / no corriente', 'Corriente es lo que se cobra o se paga dentro de los próximos 12 meses; no corriente, después.'],
+  ['Activos intangibles', 'Los derechos sobre los contratos de los jugadores. Figuran por lo que costaron, menos lo amortizado.'],
+  ['Amortización', 'La parte del costo de un jugador o de una obra que se pasa a gasto cada año, hasta llegar a cero.'],
+  ['Costo de bajas', 'El valor que todavía quedaba en libros de jugadores que se fueron, más el costo de rescindir contratos.'],
+  ['Revalúo', 'Un aumento contable del valor de un bien o jugador. Mejora el resultado, pero no entra dinero.'],
+  ['RECPAM', 'Ajuste por inflación que exige la norma contable. Aparece como resultado, pero no es plata cobrada.'],
+  ['Liquidez corriente', 'Lo que se puede cobrar en 12 meses dividido lo que hay que pagar en 12 meses. Sano: 1 o más. NOB: 0,10.'],
+  ['Déficit / superávit', 'Resultado del año: déficit si los gastos superaron a los ingresos; superávit si fue al revés.'],
+  ['Nota 18 (A.R.E.A.)', 'Correcciones de errores o criterios de balances anteriores. Este año restaron $7.083 M al patrimonio.']
+];
+
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+function money(v, signed, unit) {
+  const usd = (unit || st.unit) === 'USD';
+  const n = (usd ? v / TC : v) / 1e6;
+  const s = Math.abs(n).toLocaleString('es-AR', { minimumFractionDigits: usd ? 1 : 0, maximumFractionDigits: usd ? 1 : 0 });
+  return (signed && v > 0 ? '+' : '') + (v < 0 ? '−' : '') + (usd ? 'USD ' : '$') + s + ' M';
+}
+const pct = (x, d = 0) => (x * 100).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+const sum = (a, f) => a.reduce((t, x) => t + f(x), 0);
+const $ = id => document.getElementById(id);
+const legend = cats => cats.map(([, n, c]) => `<span><i class="sw" style="background:${c}"></i>${n}</span>`).join('');
+const catOf = (cats, k) => cats.find(c => c[0] === k);
+
+function waterfall(rows) {
+  const rh = 34, L = 300, R = 640, y0 = 8;
+  let run = 0;
+  const bars = rows.map(r => {
+    if (r.kind === 'start') { run = r.v; return { r, a: 0, b: r.v, t: 'total' }; }
+    if (r.kind === 'end') return { r, a: 0, b: run, t: 'total' };
+    const a = run; run += r.v; return { r, a, b: run, t: r.v >= 0 ? 'up' : 'down' };
+  });
+  const vals = bars.flatMap(d => [d.a, d.b]);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  const x = v => L + (v - lo) / (hi - lo) * (R - L);
+  const H = y0 + bars.length * rh + 6;
+  let s = `<line x1="${x(0)}" x2="${x(0)}" y1="${y0 - 4}" y2="${H - 4}" stroke="var(--ink-2)" stroke-opacity=".5"/>`;
+  bars.forEach((d, i) => {
+    const yy = y0 + i * rh, x1 = x(Math.min(d.a, d.b)), x2 = x(Math.max(d.a, d.b));
+    const shown = d.t === 'total' ? d.b : d.r.v, signed = d.t !== 'total';
+    const fill = d.t === 'up' ? 'var(--good)' : d.t === 'down' ? 'var(--bad)' : (shown < 0 ? 'var(--bad)' : 'var(--muted)');
+    const bold = d.t === 'total' ? ' font-weight="700"' : '';
+    s += `<text x="${L - 12}" y="${yy + 19}" text-anchor="end" font-size="13" fill="var(--ink)"${bold}>${esc(d.r.label)}</text>`;
+    s += `<rect class="grow" style="animation-delay:${i * 45}ms" x="${x1}" y="${yy + 5}" width="${Math.max(1.5, x2 - x1)}" height="${rh - 12}" rx="3" fill="${fill}" fill-opacity="${d.t === 'total' ? .9 : .75}" data-tip="${esc(`${d.r.label}: ${money(shown, signed)}`)}"/>`;
+    s += `<text class="fade" x="${x2 + 6}" y="${yy + 19}" font-size="13" fill="var(--ink)"${bold}>${money(shown, signed)}</text>`;
+    if (i < bars.length - 1) s += `<line x1="${x(d.b)}" x2="${x(d.b)}" y1="${yy + rh - 7}" y2="${yy + rh + 5}" stroke="var(--ink-2)" stroke-dasharray="2 2" stroke-opacity=".6"/>`;
+  });
+  return `<svg viewBox="0 0 760 ${H}" role="img">${s}</svg>`;
+}
+
+function squarify(items, x, y, w, h) {
+  const out = []; let rest = items.filter(d => d.v > 0).sort((a, b) => b.v - a.v);
+  const scale = w * h / sum(rest, d => d.v);
+  let rx = x, ry = y, rw = w, rh = h;
+  while (rest.length) {
+    const short = Math.min(rw, rh);
+    const worst = row => { const s = sum(row, d => d.v * scale), mx = Math.max(...row.map(d => d.v * scale)), mn = Math.min(...row.map(d => d.v * scale)); return Math.max(short * short * mx / (s * s), (s * s) / (short * short * mn)); };
+    const row = [rest[0]]; let i = 1;
+    while (i < rest.length && worst([...row, rest[i]]) <= worst(row)) { row.push(rest[i]); i++; }
+    const thick = sum(row, d => d.v * scale) / short; let off = 0;
+    row.forEach(d => { const len = d.v * scale / thick; out.push(rw >= rh ? { ...d, x: rx, y: ry + off, w: thick, h: len } : { ...d, x: rx + off, y: ry, w: len, h: thick }); off += len; });
+    if (rw >= rh) { rx += thick; rw -= thick; } else { ry += thick; rh -= thick; }
+    rest = rest.slice(i);
+  }
+  return out;
+}
+
+function treemap(data, cats, year, selKey, total) {
+  const W = 760, H = 360;
+  const items = data.map((d, i) => ({ k: d[0], n: d[1], a: d[2], b: d[3], v: year === 'a' ? d[2] : d[3], i }));
+  const tot = sum(items, d => d.v);
+  const t = squarify(items, 0, 0, W, H);
+  let s = '';
+  t.forEach((d, j) => {
+    const c = catOf(cats, d.k)[2], sel = selKey === d.i;
+    s += `<g class="tile fade" style="animation-delay:${j * 30}ms" data-tile="${d.i}" tabindex="0" role="button" aria-label="${esc(d.n)}" data-tip="${esc(`${d.n}: ${money(d.v)} · ${pct(d.v / tot)} del total`)}">`;
+    s += `<rect x="${d.x + 2}" y="${d.y + 2}" width="${Math.max(0, d.w - 4)}" height="${Math.max(0, d.h - 4)}" rx="6" fill="${c}" fill-opacity="${sel ? .45 : .2}" stroke="${sel ? 'var(--ink)' : c}" stroke-width="${sel ? 2 : 1}"/>`;
+    s += `<rect x="${d.x + 2}" y="${d.y + 2}" width="5" height="${Math.max(0, d.h - 4)}" rx="2" fill="${c}"/>`;
+    if (d.w > 92 && d.h > 44) {
+      const maxCh = Math.floor((d.w - 22) / 7);
+      const name = d.n.length > maxCh ? d.n.slice(0, maxCh - 1) + '…' : d.n;
+      s += `<text x="${d.x + 14}" y="${d.y + 22}" font-size="13" font-weight="600" fill="var(--ink)" pointer-events="none">${esc(name)}</text>`;
+      s += `<text x="${d.x + 14}" y="${d.y + 40}" font-size="13" fill="var(--ink-2)" pointer-events="none">${money(d.v)} · ${pct(d.v / tot)}</text>`;
+    } else if (d.w > 50 && d.h > 22) {
+      s += `<text x="${d.x + 12}" y="${d.y + 18}" font-size="11" fill="var(--ink-2)" pointer-events="none">${pct(d.v / tot)}</text>`;
+    }
+    s += '</g>';
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+
+function tileDetail(data, i, year, verb) {
+  if (i == null) return `<span class="sub">Tocá un rectángulo para ver el detalle y la comparación con el año anterior.</span>`;
+  const [, n, a, b] = data[i], d = b - a;
+  const ch = a ? ` (${d >= 0 ? '+' : '−'}${pct(Math.abs(d / a))})` : '';
+  return `<b class="n">${esc(n)}</b><br>2024/25: ${money(a)} → 2025/26: <b>${money(b)}</b>. ${d === 0 ? 'Sin cambios.' : `${verb} ${money(Math.abs(d))}${ch} en un año.`}`;
+}
+
+function cada100(y) {
+  const ingT = sum(ING, d => y === 'a' ? d[2] : d[3]);
+  const gasT = sum(GAS, d => y === 'a' ? d[2] : d[3]);
+  const L = 120, R = 680, max = Math.max(ingT, gasT) / ingT * 100;
+  const x = v => L + v / max * (R - L);
+  const row = (data, cats, yy, label, T) => {
+    let acc = 0, s = `<text x="${L - 12}" y="${yy + 27}" text-anchor="end" font-size="15" font-weight="700" fill="var(--ink)">${label}</text>`;
+    cats.forEach(([k, n, c], j) => {
+      const v = sum(data.filter(d => d[0] === k), d => y === 'a' ? d[2] : d[3]) / ingT * 100;
+      if (v <= 0) return;
+      const x0 = x(acc), w = x(acc + v) - x0; acc += v;
+      s += `<rect class="grow" style="animation-delay:${j * 70}ms" x="${x0}" y="${yy}" width="${w}" height="42" fill="${c}" fill-opacity=".85" stroke="var(--surface)" stroke-width="2" data-tip="${esc(`${n}: $${v.toFixed(0)} de cada $100 que entraron`)}"/>`;
+      if (w > 46) s += `<text class="fade" x="${x0 + 8}" y="${yy + 26}" font-size="14" font-weight="700" fill="#fff" stroke="rgba(0,0,0,.45)" stroke-width="3" paint-order="stroke" pointer-events="none">$${v.toFixed(0)}</text>`;
+    });
+    s += `<text class="fade" x="${x(acc) + 8}" y="${yy + 27}" font-size="16" font-weight="700" fill="var(--ink)">$${acc.toFixed(0)}</text>`;
+    return s;
+  };
+  let s = row(ING, CAT.ing, 20, 'Entraron', ingT) + row(GAS, CAT.gas, 92, 'Se gastaron', ingT);
+  s += `<line x1="${x(100)}" x2="${x(100)}" y1="8" y2="150" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${x(100) + 6}" y="160" font-size="12" fill="var(--ink)">Lo que entró</text>`;
+  return { svg: `<svg viewBox="0 0 760 170" role="img">${s}</svg>`, ratio: gasT / ingT * 100 };
+}
+
+function renderQ1() {
+  const yr = $('q1-year');
+  yr.style.display = st.q1 === 'cada100' ? '' : 'none';
+  if (st.q1 === 'cada100') {
+    const r = cada100(st.y1);
+    $('c-q1').innerHTML = r.svg;
+    $('lg-q1').innerHTML = '<b>Ingresos:</b> ' + legend(CAT.ing) + ' &nbsp; <b>Gastos:</b> ' + legend(CAT.gas);
+    $('cr-q1').innerHTML = st.y1 === 'b'
+      ? `<strong>En criollo</strong>Por cada $100 que entraron, el club gastó <b>$${r.ratio.toFixed(0)}</b>. Aun sumando los resultados financieros, el año cerró con un <span class="term" data-tip="Déficit: los gastos superaron a los ingresos.">déficit</span> de ${money(-28003496383)}.`
+      : `<strong>En criollo</strong>En 2024/25 se gastaron <b>$${r.ratio.toFixed(0)}</b> por cada $100, casi equilibrado. Pero esos ingresos incluían $6.142 M de <span class="term" data-tip="Revalúo: aumento contable del valor de los jugadores. No entra dinero.">revalúo</span> de jugadores, que no es plata cobrada.`;
+  } else if (st.q1 === 'cambio') {
+    $('c-q1').innerHTML = waterfall(RES);
+    $('lg-q1').innerHTML = '<span><i class="sw" style="background:var(--good)"></i>Mejoró el resultado</span><span><i class="sw" style="background:var(--bad)"></i>Lo empeoró</span><span><i class="sw" style="background:var(--muted)"></i>Resultado del año</span>';
+    $('cr-q1').innerHTML = `<strong>En criollo</strong>El resultado empeoró ${money(31526910342)} en un año. Las dos causas principales: ${money(17454213432)} menos de ingresos del fútbol (sobre todo pases) y ${money(11882655857)} más de gastos de los sectores (sobre todo bajas del plantel).`;
+  } else {
+    $('c-q1').innerHTML = waterfall(PN);
+    $('lg-q1').innerHTML = '<span><i class="sw" style="background:var(--bad)"></i>Reduce el patrimonio</span><span><i class="sw" style="background:var(--muted)"></i>Saldo</span>';
+    $('cr-q1').innerHTML = `<strong>En criollo</strong>El <span class="term" data-tip="Patrimonio neto: lo que le quedaría al club si vendiera todo y pagara todas sus deudas.">patrimonio</span> cayó 78%, de ${money(45088342935)} a ${money(9805705400)}. Además del déficit, se corrigieron ${money(7083490927)} de errores de balances anteriores.`;
+  }
+}
+
+function renderQ4() {
+  const rows = st.recpam ? FLU : FLU.filter(r => !r.recpam);
+  $('c-q4').innerHTML = waterfall(rows);
+  $('cr-q4').innerHTML = st.recpam
+    ? `<strong>En criollo</strong>El balance muestra que la caja bajó de ${money(648561846)} a ${money(287785564)}. Pero incluye ${money(10942088723)} de un <span class="term" data-tip="RECPAM: ajuste por inflación que exige la norma contable. No es plata cobrada.">ajuste por inflación</span> que no es dinero real. Probá "Solo dinero real".`
+    : `<strong>En criollo</strong>Sin el ajuste contable, lo que entró por la actividad del club (${money(28963375444)}) no alcanzó para pagar sueldos, proveedores e impuestos (${money(39669357414)}). El agujero se tapó vendiendo jugadores y tomando préstamos.`;
+}
+
+function balanceChart(y) {
+  const rows = BAL.filter(b => b.y === y), L = 210, R = 730, bh = 54;
+  const max = Math.max(...BAL.map(b => sum(b.parts, p => p[1])));
+  const w = v => v / max * (R - L);
+  let s = '';
+  rows.forEach((b, i) => {
+    const yy = 10 + i * (bh + 26);
+    s += `<text x="${L - 12}" y="${yy + 32}" text-anchor="end" font-size="14" font-weight="700" fill="var(--ink)">${b.side}</text>`;
+    let acc = 0;
+    b.parts.forEach(([n, v, c, op], j) => {
+      const x0 = L + w(acc), wd = w(v); acc += v;
+      s += `<rect class="grow" style="animation-delay:${j * 80}ms" x="${x0}" y="${yy}" width="${wd}" height="${bh}" fill="${c}" fill-opacity="${op}" stroke="var(--surface)" stroke-width="2" data-tip="${esc(`${n}: ${money(v)}`)}"/>`;
+      if (wd > 110) s += `<text class="fade" x="${x0 + 8}" y="${yy + 22}" font-size="12" fill="var(--ink)" pointer-events="none">${esc(n.length > wd / 6.5 ? n.slice(0, Math.floor(wd / 6.5) - 1) + '…' : n)}</text><text class="fade" x="${x0 + 8}" y="${yy + 40}" font-size="13" font-weight="700" fill="var(--ink)" pointer-events="none">${money(v)}</text>`;
+    });
+  });
+  return `<svg viewBox="0 0 760 ${10 + 2 * (bh + 26)}" role="img">${s}</svg>`;
+}
+
+function renderQ5() {
+  if (st.q5 === 'quien') {
+    $('c-q5').innerHTML = treemap(DEU, CAT.deu, st.y5, st.sel5);
+    $('lg-q5').innerHTML = legend(CAT.deu);
+    $('d-q5').innerHTML = `<span class="sub">Tocá un rectángulo para ver cuánto se le debía hace un año.</span>`;
+    if (st.sel5 != null) { const [, , a, b] = DEU[st.sel5]; $('d-q5').innerHTML = `<b class="n">${esc(DEU[st.sel5][1])}</b><br>Al 30/06/2025: ${money(a)} → al 30/06/2026: <b>${money(b)}</b> (${b >= a ? 'subió' : 'bajó'} ${money(Math.abs(b - a))}, ${pct(Math.abs(b - a) / a)}).`; }
+  } else {
+    $('c-q5').innerHTML = balanceChart(st.y5);
+    $('lg-q5').innerHTML = '<span><i class="sw" style="background:var(--c3)"></i>Lo que tiene</span><span><i class="sw" style="background:var(--bad)"></i>Lo que debe</span><span><i class="sw" style="background:var(--muted)"></i>Patrimonio neto (lo propio)</span>';
+    const pc = st.y5 === 'b' ? [54193470172, 5537507913] : [34713392044, 12392410838];
+    $('d-q5').innerHTML = `Por cada $1 que hay que pagar en los próximos 12 meses, el club tiene <b class="n">$${(pc[1] / pc[0]).toFixed(2).replace('.', ',')}</b> para cobrar o usar en ese plazo. Lo sano es $1 o más.`;
+  }
+}
+
+function concentracion() {
+  const L = 10, R = 750, y = 28, h = 30;
+  const segs = [...[...PLA].sort((a, b) => b.neto - a.neto).map(p => ({ n: p.n, v: p.neto, i: p.i })), ...OTROS_PLA.map(([n, v]) => ({ n, v, i: -1 }))];
+  let acc = 0, s = `<text x="${L}" y="16" font-size="13" fill="var(--ink-2)">Valor del plantel (${money(PLANTEL)}): cada tramo verde es un jugador. En las fichas, gris = ya amortizado</text>`;
+  segs.forEach((g, k) => {
+    const x0 = L + acc / PLANTEL * (R - L), w = g.v / PLANTEL * (R - L); acc += g.v;
+    const isP = g.i >= 0, sel = g.i === st.selP;
+    s += `<rect class="grow" style="animation-delay:${k * 40}ms" x="${x0}" y="${y}" width="${w}" height="${h}" fill="${isP ? 'var(--accent)' : 'var(--muted)'}" fill-opacity="${isP ? (sel ? 1 : .35 + (k % 2) * .2) : .35}" stroke="${sel ? 'var(--ink)' : 'var(--surface)'}" stroke-width="${sel ? 2 : 1.5}" data-tip="${esc(`${g.n}: ${money(g.v)} · ${pct(g.v / PLANTEL, 1)}`)}"${isP ? ` data-pick="${g.i}"` : ''} style="cursor:pointer"/>`;
+  });
+  const half = L + .5 * (R - L);
+  s += `<line x1="${half}" x2="${half}" y1="${y - 6}" y2="${y + h + 6}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 2"/><text x="${half + 5}" y="${y + h + 18}" font-size="12" fill="var(--ink)">Mitad del valor: la alcanzan ${MITAD.n} jugadores</text>`;
+  return `<svg viewBox="0 0 760 ${y + h + 24}" role="img">${s}</svg>`;
+}
+
+function renderQ6() {
+  const jug = st.q6 !== 'deuda';
+  document.querySelector('.q6-jug').hidden = !jug;
+  document.querySelector('.q6-deuda').hidden = jug;
+  $('p-sort-wrap').hidden = !jug;
+  $('c-conc').innerHTML = concentracion();
+  const rank = new Map([...PLA].sort((a, b) => b.neto - a.neto).map((p, k) => [p.i, k + 1]));
+  const list = [...PLA].sort((a, b) => b[st.psort] - a[st.psort]);
+  $('cards').innerHTML = list.map(p => `<button class="pcard${p.i === st.selP ? ' sel' : ''}" data-pick="${p.i}">
+    <div class="top"><span class="nm">${esc(p.n)}</span><span class="rk">#${rank.get(p.i)}</span></div>
+    <span class="val">${money(p.neto)}</span>
+    <div class="bar" title="Amortizado ${pct(p.cons)}"><i style="width:${(p.cons * 100).toFixed(1)}%"></i></div>
+    <div class="meta"><span>${pct(p.cons)} amortizado</span></div>
+    <span class="chip ${p.k}">${esc(p.sit)}</span></button>`).join('');
+  const p = PLA[st.selP];
+  const anios = p.amort > 0 ? p.neto / p.amort : 0;
+  $('d-q6').innerHTML = `<b class="n">${esc(p.n)}</b> · ${esc(p.sit)}<br>Costó ${money(p.cierre)} y hoy figura por <b>${money(p.neto)}</b>, el ${pct(p.neto / PLANTEL, 1)} de todo el plantel. Este año se pasaron a gasto ${money(p.amort)}; a ese ritmo, su valor en libros llega a cero en unos ${anios.toFixed(1).replace('.', ',')} años.${p.k === 'out' ? ' Figura como baja en la Memoria, pero conserva valor contable: conviene preguntar por qué.' : ''}`;
+  const L = 270, R = 610, rh = 44, lo = Math.min(0, ...VSD.map(r => r[1])), hi = Math.max(...VSD.map(r => r[1]));
+  const x = v => L + (v - lo) / (hi - lo) * (R - L);
+  let s = `<text x="4" y="16" font-size="15" font-weight="700" fill="var(--ink)">Lo que valen los jugadores frente a lo que se debe por ellos</text><line x1="${x(0)}" x2="${x(0)}" y1="26" y2="${30 + VSD.length * rh}" stroke="var(--ink-2)" stroke-opacity=".5"/>`;
+  VSD.forEach(([n, v, c, op], i) => {
+    const yy = 30 + i * rh, x1 = x(Math.min(0, v)), x2 = x(Math.max(0, v));
+    s += `<text x="${L - 12}" y="${yy + 22}" text-anchor="end" font-size="13" fill="var(--ink)">${esc(n)}</text>`;
+    s += `<rect class="grow" style="animation-delay:${i * 60}ms" x="${x1}" y="${yy + 6}" width="${Math.max(1.5, x2 - x1)}" height="${rh - 16}" rx="3" fill="${c}" fill-opacity="${op}" data-tip="${esc(`${n}: ${money(v)}`)}"/>`;
+    s += `<text class="fade" x="${x(Math.max(0, v)) + 8}" y="${yy + 24}" font-size="13" font-weight="700" fill="var(--ink)">${money(v)}</text>`;
+  });
+  $('c-vsdeuda').innerHTML = `<svg viewBox="0 0 760 ${34 + VSD.length * rh}" role="img">${s}</svg>`;
+}
+
+const BASE = { res: -28003496383, pn: 9805705400, sueldos: 17269070537, bajas: 11173039488, socios: 14705664998, usdNet: 30495419530, ing: 36227476503, gas: 67563357997 };
+const SL = ['s-venta', 's-compra', 's-predio', 's-sueldos', 's-socios', 's-deval'];
+const PRESETS = { venta: [5, 0, 0, 0, 0, 0], compra: [0, 3, 0, 0, 0, 0], predio: [0, 0, 1, 0, 0, 0], ajuste: [0, 0, 0, -30, 0, 0], socios: [0, 0, 0, 0, 30, 0], deval: [0, 0, 0, 0, 0, 30] };
+const activeP = new Set();
+// Bienes de uso al 30/06/2026, valor residual según Anexo III; cada paso del control suma uno
+const BIENES = [
+  ['Anticipo para compra de terrenos', 4556354676],
+  ['Instalaciones', 15752831809],
+  ['Edificios y terrenos', 20805385937]
+];
+function applyPresets() {
+  SL.forEach((id, k) => { const el = $(id); const v = [...activeP].reduce((t, p) => t + PRESETS[p][k], 0); el.value = Math.max(+el.min, Math.min(+el.max, v)); });
+  document.querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', activeP.has(b.dataset.p) ? 'true' : 'false'));
+  lab();
+}
+function lab() {
+  const g = id => +$(id).value;
+  const dolar = TC * (1 + g('s-deval') / 100), dolarTxt = '$' + dolar.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+  const compra = -g('s-compra') * 1e6 * dolar;
+  $('o-compra').textContent = 'USD ' + g('s-compra').toLocaleString('es-AR') + ' M';
+  const vendidos = BIENES.slice(0, g('s-predio'));
+  const bienLibros = vendidos.reduce((t, b) => t + b[1], 0), precio = bienLibros / TC * dolar, predio = precio - bienLibros;
+  const bienNom = vendidos.map(b => b[0].toLowerCase()).join(' + ');
+  const usdLibros = bienLibros / TC / 1e6;
+  $('o-predio').textContent = vendidos.length ? `${['Terrenos', '+ Instalaciones', '+ Edificios'][vendidos.length - 1]} · USD ${usdLibros.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} M` : 'Nada';
+  const venta = g('s-venta') * 1e6 * dolar, sueldos = -g('s-sueldos') / 100 * BASE.sueldos, socios = g('s-socios') / 100 * BASE.socios, deval = -g('s-deval') / 100 * BASE.usdNet;
+  $('o-venta').textContent = 'USD ' + g('s-venta').toLocaleString('es-AR') + ' M';
+  $('o-sueldos').textContent = (g('s-sueldos') > 0 ? '+' : '') + g('s-sueldos') + '%';
+  $('o-socios').textContent = '+' + g('s-socios') + '%';
+  $('o-deval').textContent = g('s-deval') + '% · dólar a ' + dolarTxt;
+  const res = BASE.res + venta + compra + predio + sueldos + socios + deval, pn = BASE.pn + (res - BASE.res);
+  const ok = res >= 0;
+  const lo = -60e9, hi = 20e9, W = 400, xx = v => Math.max(0, Math.min(W, (v - lo) / (hi - lo) * W));
+  const parts = [['Ventas de jugadores', venta], ['Compras de jugadores', compra], [precio > 0 ? 'Ganancia por la venta (precio − libros)' : '', predio], ['Sueldos', sueldos], ['Socios', socios], [`Devaluación (dólar de $1.500 a ${dolarTxt})`, deval]].filter(p => p[1] !== 0);
+  $('outcome').innerHTML = `<span class="sub" style="margin:0">Resultado del ejercicio</span>
+    <span class="res" style="color:${ok ? 'var(--good)' : 'var(--bad)'}">${money(res, true)}</span>
+    <span class="verdict ${ok ? 'good' : 'bad'}">${ok ? 'Las cuentas cierran' : `Faltan ${money(-res)} para equilibrar`}</span>
+    <svg viewBox="0 0 ${W} 46" role="img" aria-label="Resultado frente al punto de equilibrio">
+      <rect x="0" y="12" width="${W}" height="14" rx="7" fill="var(--line)"/>
+      <rect x="${Math.min(xx(0), xx(res))}" y="12" width="${Math.abs(xx(res) - xx(0))}" height="14" rx="3" fill="${ok ? 'var(--good)' : 'var(--bad)'}" fill-opacity=".8"/>
+      <line x1="${xx(0)}" x2="${xx(0)}" y1="4" y2="34" stroke="var(--ink)" stroke-width="2"/>
+      <text x="${xx(0)}" y="44" text-anchor="middle" font-size="11" fill="var(--ink)">Equilibrio</text>
+      <line x1="${xx(BASE.res)}" x2="${xx(BASE.res)}" y1="8" y2="30" stroke="var(--ink-2)" stroke-dasharray="2 2"/>
+      <text x="${xx(BASE.res)}" y="44" text-anchor="middle" font-size="11" fill="var(--ink-2)">Real</text>
+    </svg>
+    ${parts.map(([n, v]) => `<div class="row"><span>${n}</span><b style="color:${v >= 0 ? 'var(--good)' : 'var(--bad)'}">${money(v, true)}</b></div>`).join('')}
+    ${precio > 0 ? `<div class="row"><span>Caja por la venta (no es resultado)</span><b>${money(precio)}</b></div>` : ''}
+    <div class="row"><span>Patrimonio neto resultante</span><b style="color:${pn >= 0 ? 'var(--ink)' : 'var(--bad)'}">${money(pn)}</b></div>`;
+  const touched = SL.some(id => +$(id).value !== 0);
+  $('alerts-label').hidden = !touched;
+  if (!touched) { $('alerts').innerHTML = '<p class="more">Elegí una o varias medidas para ver qué podría pasar.</p>'; return; }
+  const A = [];
+  if (pn < 0) A.push([3, 'El club cae en concurso de acreedores', 'El patrimonio queda negativo: el club debe más de lo que tiene y no puede pagar a todos.']);
+  if (res < -20e9) A.push([3, 'El club tiene inhibiciones', 'Con un déficit así y sin financiamiento, las deudas impagas terminan en embargos e inhibiciones.']);
+  if (res < -15e9 && g('s-predio') === 0) A.push([1.5, 'Sugerencia: el club debería vender un predio', 'Vender un predio o instalaciones aportaría caja para pagar deudas sin desarmar el plantel. Probá la medida "El club vende un predio o instalaciones".']);
+  if (precio > 0) A.push([1, 'El club se desprende de un bien', `Vende ${bienNom}. Entran ${money(precio)} de caja por única vez${predio > 0 ? `; por el dólar más alto, la ganancia sobre libros es de ${money(predio)}` : ', igual a su valor en libros'}.`]);
+  if (g('s-sueldos') <= -30 || g('s-venta') >= 8) A.push([2, 'El club se podría ir al descenso', 'Un plantel desarmado o con mucho menos presupuesto compite peor.']);
+  if (g('s-deval') >= 30) A.push([2, 'La deuda en dólares se dispara', `Con el dólar a ${dolarTxt}, la deuda neta en dólares sube ${money(-deval)}.`]);
+  if (g('s-compra') > 0 && res < 0) A.push([1, 'Más deuda con otros clubes', 'Comprar jugadores sin caja suma deuda por pases, que ya es el 57% del pasivo.']);
+  if (g('s-socios') >= 30) A.push([1, 'Riesgo de perder socios', 'Subas fuertes de cuota pueden aumentar la morosidad: hoy ya se prevé no cobrar el 32%.']);
+  if (res >= 0) A.push([0, 'Las cuentas cierran', 'El resultado sería positivo. Igual hay que refinanciar los $54.193 M que vencen en 12 meses.']);
+  A.sort((p, q) => q[0] - p[0]);
+  const shown = A.slice(0, 3), more = A.length - shown.length;
+  const cls = s => s === 1.5 ? 'sug' : ['ok', 'info', 'warn', 'crit'][s], icon = s => s === 1.5 ? '→' : ['✓', 'i', '!', '⚠'][s];
+  $('alerts').innerHTML = shown.map(([s, t, d]) => `<div class="alert ${cls(s)}"><span class="ic" aria-hidden="true">${icon(s)}</span><div><b>${t.toUpperCase()}</b><span>${d}</span></div></div>`).join('')
+    + (more > 0 ? `<p class="more">+${more} ${more === 1 ? 'riesgo más' : 'riesgos más'}: ${A.slice(3).map(a => a[1].toLowerCase()).join(', ')}.</p>` : '');
+}
+
+function lights() {
+  const L = [
+    ['q1', 'Resultado del año', money(-28003496383), 'Gastó $186 por cada $100', ''],
+    ['q1', 'Patrimonio neto', money(9805705400), 'Cayó 78% en un año', ''],
+    ['q5', 'Liquidez a 12 meses', '$0,10', 'por cada $1 que debe pagar', ''],
+    ['q5', 'Deuda total', money(60758099745), '57% en dólares', ''],
+    ['q6', 'Valor del plantel', money(PLANTEL), `${MITAD.n} jugadores = ${pct(MITAD.v / PLANTEL)}`, 'warn']
+  ];
+  $('lights').innerHTML = L.map(([q, k, v, d, c]) => `<button class="light ${c}" data-go="${q}"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span></button>`).join('');
+}
+
+function render() {
+  document.querySelectorAll('[data-m]').forEach(el => el.textContent = money(+el.dataset.m, el.dataset.s === '1'));
+  lights(); renderQ1();
+  $('c-q2').innerHTML = treemap(ING, CAT.ing, st.y2, st.sel2); $('lg-q2').innerHTML = legend(CAT.ing); $('d-q2').innerHTML = tileDetail(ING, st.sel2, st.y2, 'Variación:');
+  $('c-q3').innerHTML = treemap(GAS, CAT.gas, st.y3, st.sel3); $('lg-q3').innerHTML = legend(CAT.gas); $('d-q3').innerHTML = tileDetail(GAS, st.sel3, st.y3, 'Variación:');
+  renderQ4(); renderQ5(); renderQ6(); lab();
+}
+
+function press(sel, btn) { document.querySelectorAll(sel).forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false')); }
+document.addEventListener('click', e => {
+  const b = e.target.closest('button, [data-tile], [data-pick]');
+  if (!b) return;
+  if (b.id === 'u-ars' || b.id === 'u-usd') { st.unit = b.id === 'u-usd' ? 'USD' : 'ARS'; press('#u-ars, #u-usd', b); render(); return; }
+  if (b.dataset.q1) { st.q1 = b.dataset.q1; press('[data-q1]', b); renderQ1(); return; }
+  if (b.dataset.q5) { st.q5 = b.dataset.q5; press('[data-q5]', b); renderQ5(); return; }
+  if (b.dataset.q6) { st.q6 = b.dataset.q6; press('[data-q6]', b); renderQ6(); return; }
+  if (b.dataset.y) {
+    const box = b.closest('[id$="-year"]').id, key = { 'q1-year': 'y1', 'q2-year': 'y2', 'q3-year': 'y3', 'q5-year': 'y5' }[box];
+    st[key] = b.dataset.y; press(`#${box} button`, b); render(); return;
+  }
+  if (b.id === 'recpam-on' || b.id === 'recpam-off') { st.recpam = b.id === 'recpam-on'; press('#recpam-on, #recpam-off', b); renderQ4(); return; }
+  if (b.dataset.go) { go(b.dataset.go); return; }
+  if (b.dataset.p) { const p = b.dataset.p; activeP.has(p) ? activeP.delete(p) : activeP.add(p); applyPresets(); return; }
+  if (b.dataset.reset) { activeP.clear(); applyPresets(); return; }
+  if (b.dataset.tile != null) {
+    const sec = b.closest('section').id, i = +b.dataset.tile;
+    if (sec === 'q2') { st.sel2 = st.sel2 === i ? null : i; }
+    if (sec === 'q3') { st.sel3 = st.sel3 === i ? null : i; }
+    if (sec === 'q5') { st.sel5 = st.sel5 === i ? null : i; }
+    render(); return;
+  }
+  if (b.dataset.pick != null) { st.selP = +b.dataset.pick; renderQ6(); }
+});
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset && e.target.dataset.tile != null) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+$('p-sort').onchange = e => { st.psort = e.target.value; renderQ6(); };
+document.querySelectorAll('.sl input').forEach(i => i.oninput = lab);
+
+const tip = $('tip');
+document.addEventListener('pointermove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (!t) { tip.classList.remove('on'); return; }
+  tip.textContent = t.getAttribute('data-tip');
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY - h - 10;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+  if (y < 8) y = e.clientY + 16;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.classList.add('on');
+});
+
+$('gloss').innerHTML = GLOSS.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join('');
+const links = [...document.querySelectorAll('#steps a')];
+const pages = [...document.querySelectorAll('.page')];
+const ids = pages.map(p => p.id);
+const titles = { inicio: 'Inicio', glosario: 'Glosario' };
+pages.forEach((p, k) => {
+  if (p.id === 'inicio') return;
+  const prev = ids[k - 1], next = ids[k + 1];
+  const name = id => titles[id] || links.find(a => a.getAttribute('href') === '#' + id).textContent.replace(/^\d/, '');
+  const n = p.id.startsWith('q') ? `Pregunta ${p.id.slice(1)} de 7` : 'Glosario';
+  const d = document.createElement('div');
+  d.className = 'pager';
+  d.innerHTML = `<button data-go="${prev}" class="prev">← ${esc(name(prev))}</button><span class="label">${n}</span>${next ? `<button data-go="${next}" class="next">${esc(name(next))} →</button>` : `<button data-go="inicio" class="next">Volver al inicio</button>`}`;
+  p.appendChild(d);
+});
+function show(id) {
+  if (!ids.includes(id)) id = 'inicio';
+  pages.forEach(p => p.classList.toggle('active', p.id === id));
+  links.forEach(a => { const on = a.getAttribute('href') === '#' + id; a.classList.toggle('on', on); if (on) { a.setAttribute('aria-current', 'page'); const ol = $('steps'); ol.scrollLeft = a.offsetLeft - ol.clientWidth / 2 + a.offsetWidth / 2; } else a.removeAttribute('aria-current'); });
+  const k = ids.indexOf(id);
+  $('progress').style.width = (k / (ids.length - 1) * 100) + '%';
+  window.scrollTo(0, 0); requestAnimationFrame(() => window.scrollTo(0, 0)); setTimeout(() => window.scrollTo(0, 0), 80);
+  tip.classList.remove('on');
+  const h = document.querySelector(`#${id} h2, #${id} .big`);
+  if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+}
+function go(id) { if (location.hash === '#' + id) show(id); else location.hash = id; }
+addEventListener('hashchange', () => show(location.hash.slice(1)));
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, select, textarea')) return;
+  const k = ids.indexOf(location.hash.slice(1) || 'inicio');
+  if (e.key === 'ArrowRight' && k < ids.length - 1) go(ids[k + 1]);
+  if (e.key === 'ArrowLeft' && k > 0) go(ids[k - 1]);
+});
+render();
+show(location.hash.slice(1) || 'inicio');
+</script>
+</body>
+</html>
